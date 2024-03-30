@@ -17,7 +17,7 @@ options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnectio
 
 builder.Services.AddHttpClient();
 builder.Services.AddSingleton<ITagApiConfiguration, ITagApiConfiguration>();
-
+builder.Services.AddLogging(configure => configure.AddConsole());
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
