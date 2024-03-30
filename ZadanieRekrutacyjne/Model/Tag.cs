@@ -5,6 +5,6 @@
         public int Id;
         public string Name = "";
         public int Count;
-        public double Percentage;
+        //public double Percentage; 
     }
 }
