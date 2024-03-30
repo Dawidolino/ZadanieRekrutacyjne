@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ZadanieRekrutacyjne.Model;
+using ZadanieRekrutacyjne.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,8 +11,12 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddScoped<TagDownloader>();
 builder.Services.AddDbContext<TagContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddHttpClient();
+builder.Services.AddSingleton<ITagApiConfiguration, ITagApiConfiguration>();
 
 var app = builder.Build();
 
