@@ -7,6 +7,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
+
+builder.Services.AddLogging(configure => configure.AddConsole());
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -17,7 +20,6 @@ options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnectio
 
 builder.Services.AddHttpClient();
 builder.Services.AddSingleton<ITagApiConfiguration, ITagApiConfiguration>();
-builder.Services.AddLogging(configure => configure.AddConsole());
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

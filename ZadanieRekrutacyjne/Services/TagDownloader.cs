@@ -12,9 +12,9 @@ namespace ZadanieRekrutacyjne.Services
         private readonly HttpClient _httpClient;
         private readonly TagContext _tagContext;
         private readonly ITagApiConfiguration _tagApiConfiguration;
-        private readonly ILogger _logger;
+        private readonly ILogger<TagDownloader> _logger;
 
-        public TagDownloader(HttpClient httpClient, TagContext tagContext, ITagApiConfiguration tagApiConfiguration, ILogger logger)
+        public TagDownloader(HttpClient httpClient, TagContext tagContext, ITagApiConfiguration tagApiConfiguration, ILogger<TagDownloader> logger)
         {
             _httpClient = httpClient;
             _tagContext = tagContext;
@@ -24,7 +24,7 @@ namespace ZadanieRekrutacyjne.Services
         public async Task DownloadTagsFromStackOverflow()
         {
             var apiKey = _tagApiConfiguration.ApiKey;
-            var url = $"https://api.stackexchange.com/2.2/tags?pagesize=5&order=desc&sort=popular&site=stackoverflow&key={apiKey}";
+            var url = $"https://api.stackexchange.com/2.2/tags?pagesize=1&order=desc&sort=popular&site=stackoverflow&key={apiKey}";
             _logger.LogInformation("Downloading tags from {url}", url);
 
             var response = await _httpClient.GetAsync(url);
