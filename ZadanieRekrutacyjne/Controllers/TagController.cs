@@ -49,15 +49,15 @@ namespace ZadanieRekrutacyjne.Controllers
         }
 
         [HttpGet()]
-        public async Task<IActionResult> GetTags(int offset = 0, int limit = 100)
+        public async Task<IActionResult> GetTags()
         {
-            var tags =await GetTagsFromApi(offset, limit);           
+            var tags =await GetTagsFromApi();           
             SaveTagsToDatabase(tags);
 
             return Ok(tags);
         }
 
-        private async Task<List<Tag>> GetTagsFromApi(int offset, int limit)
+        private async Task<List<Tag>> GetTagsFromApi(int offSet =0)
         {
             var apiKey = _tagApiConfiguration.ApiKey;
             var baseUrl = "https://api.stackexchange.com/2.3/tags?";
@@ -65,16 +65,27 @@ namespace ZadanieRekrutacyjne.Controllers
 
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
 
-                var url = baseUrl + $"site=stackoverflow&pagesize={limit}&from={offset}&key={apiKey}";
-                var response = await _httpClient.GetAsync(url);
+            var url = baseUrl + $"pagesize=100&order=desc&sort=popular&site=stackoverflow&key={apiKey}&from={offSet}";
+            var response = await _httpClient.GetAsync(url);
 
                 if (response.IsSuccessStatusCode)
                 {
-                    var responseContent = await response.Content.ReadAsStringAsync(); // Read response as string
-                    _logger.LogInformation("Response content: {content}", responseContent);
-                    var tags = JsonConvert.DeserializeObject<List<Tag>>(responseContent); // Deserialize to List<Tag>
-                   // Tag c = JsonConvert.DeserializeObject<List<Tag>>(responseContent);
-                    return tags;
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var data = JsonConvert.DeserializeObject<Dictionary<string, object>>(responseContent); // Deserialize to Dictionary
+                    var items = data["items"] as List<object>; // Get the "items" list
+
+                    var tags = new List<Tag>();
+                    foreach (var item in items)
+                    {
+                        var tagDict = item as Dictionary<string, object>; // Cast to Dictionary
+                        tags.Add(new Tag
+                        {
+                            Name = tagDict["name"] as string,
+                            Count = Convert.ToInt32(tagDict["count"])
+                        });
+                    }
+
+                  return tags;
                 }
                 else
                 {
