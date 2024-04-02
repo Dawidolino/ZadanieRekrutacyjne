@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using System.IO.Compression;
 using System.Net.Http.Headers;
+using System.Text;
 using ZadanieRekrutacyjne.Model;
 using ZadanieRekrutacyjne.Services;
 
@@ -17,29 +19,7 @@ namespace ZadanieRekrutacyjne.Controllers
         private readonly TagContext _tagContext;
         private readonly ITagApiConfiguration _tagApiConfiguration;
         private readonly ILogger<TagDownloader> _logger;
-       
-        //private readonly TagDownloader _tagDownloader;
-
-        //public TagController(TagDownloader tagDownloader)
-        //{
-        //    _tagDownloader = tagDownloader;
-        //}
-        //[HttpGet]
-        //public async Task<IActionResult> GetTags()
-        //{
-        //    try
-        //    {
-        //        await _tagDownloader.DownloadTagsFromStackOverflow();
-        //        return Ok("Tags downloaded successfully.");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return StatusCode(500, $"Failed to download tags: {ex.Message}");
-        //    }
-        //}
-
-        
-
+                 
         public TagController(HttpClient httpClient, TagContext tagContext, ITagApiConfiguration tagApiConfiguration, ILogger<TagDownloader> logger)
         {
             _httpClient = httpClient;
@@ -51,13 +31,13 @@ namespace ZadanieRekrutacyjne.Controllers
         [HttpGet()]
         public async Task<IActionResult> GetTags(int limit)
         {
-            var tags =await GetTagsFromApi(limit);           
-            SaveTagsToDatabase(tags);
+            var tags =await GetTagsFromApi(limit);
+            //SaveTagsToDatabase(tags);
 
             return Ok(tags);
         }
 
-        private async Task<List<Tag>> GetTagsFromApi(int limit)
+        private async Task<IActionResult> GetTagsFromApi(int limit)
         {
             var apiKey = _tagApiConfiguration.ApiKey;
             var baseUrl = "https://api.stackexchange.com/2.3/tags?";
@@ -66,21 +46,44 @@ namespace ZadanieRekrutacyjne.Controllers
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
 
                 var url = baseUrl + $"site=stackoverflow&pagesize={limit}&key={apiKey}";
-                var response = await _httpClient.GetAsync(url);
+                
+            HttpResponseMessage response = await _httpClient.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+            if (response.Content.Headers.ContentEncoding.Contains("gzip") ){                                   //json is compressed into gzip and needs to be decompressed first
+                using (Stream stream = await response.Content.ReadAsStreamAsync())
+                using (GZipStream gZipStream = new GZipStream(stream, CompressionMode.Decompress))
+                using (StreamReader reader = new StreamReader(gZipStream))
+                {
+                    string responseBody = await reader.ReadToEndAsync();
+                    return Ok(responseBody);
+                }
 
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseContent = await response.Content.ReadAsStringAsync(); // Read response as string
-                    _logger.LogInformation("Response content: {content}", responseContent);
-                    var tags = JsonConvert.DeserializeObject<List<Tag>>(responseContent); // Deserialize to List<Tag>
-                   // Tag c = JsonConvert.DeserializeObject<List<Tag>>(responseContent);
-                    return tags;
-                }
-                else
-                {
-                    throw new Exception($"Failed to get tags from API: {response.StatusCode}");
-                }
-            
+            }
+            else
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                var tags = JsonConvert.DeserializeObject<List<Tag>>(responseContent);
+                return Ok(tags); // Return deserialized tags list for non-Gzip
+            }
+
+            //previous attempt of deserializing json
+
+            //if (response.IsSuccessStatusCode)
+            //    {
+            //    var responseContent = await response.Content.ReadAsStringAsync();
+            //   // Console.WriteLine("Response from API: " + responseContent);
+            //   // responseContent = responseContent.Trim('\u001F');
+
+            //    //_logger.LogInformation("Response content: {content}", responseContent);
+            //        var tagApiResponse = JsonConvert.DeserializeObject<TagApiResponse>(responseContent); // Deserialize to TagApiResponse
+            //        var tags = tagApiResponse.Items.Select(tagInfo => new Tag { Name = tagInfo.Name }).ToList();
+            //        return tags;
+            //}
+            //    else
+            //    {
+            //        throw new Exception($"Failed to get tags from API: {response.StatusCode}");
+            //    }
+
         }
         private void SaveTagsToDatabase(List<Tag> tags)
         {
