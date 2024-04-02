@@ -18,9 +18,9 @@ namespace ZadanieRekrutacyjne.Controllers
         private readonly HttpClient _httpClient;
         private readonly TagContext _tagContext;
         private readonly ITagApiConfiguration _tagApiConfiguration;
-        private readonly ILogger<TagDownloader> _logger;
+        private readonly ILogger<TagController> _logger;
                  
-        public TagController(HttpClient httpClient, TagContext tagContext, ITagApiConfiguration tagApiConfiguration, ILogger<TagDownloader> logger)
+        public TagController(HttpClient httpClient, TagContext tagContext, ITagApiConfiguration tagApiConfiguration, ILogger<TagController> logger)
         {
             _httpClient = httpClient;
             _tagContext = tagContext;

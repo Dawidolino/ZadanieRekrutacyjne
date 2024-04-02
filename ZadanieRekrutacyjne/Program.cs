@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using ZadanieRekrutacyjne.Controllers;
 using ZadanieRekrutacyjne.Model;
 using ZadanieRekrutacyjne.Services;
 
@@ -14,7 +15,7 @@ builder.Services.AddLogging(configure => configure.AddConsole());
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddScoped<TagDownloader>();
+builder.Services.AddScoped<TagController>();
 builder.Services.AddDbContext<TagContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
