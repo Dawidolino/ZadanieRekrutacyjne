@@ -49,15 +49,15 @@ namespace ZadanieRekrutacyjne.Controllers
         }
 
         [HttpGet()]
-        public async Task<IActionResult> GetTags(int offset = 0, int limit = 100)
+        public async Task<IActionResult> GetTags(int limit)
         {
-            var tags =await GetTagsFromApi(offset, limit);           
+            var tags =await GetTagsFromApi(limit);           
             SaveTagsToDatabase(tags);
 
             return Ok(tags);
         }
 
-        private async Task<List<Tag>> GetTagsFromApi(int offset, int limit)
+        private async Task<List<Tag>> GetTagsFromApi(int limit)
         {
             var apiKey = _tagApiConfiguration.ApiKey;
             var baseUrl = "https://api.stackexchange.com/2.3/tags?";
@@ -65,7 +65,7 @@ namespace ZadanieRekrutacyjne.Controllers
 
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
 
-                var url = baseUrl + $"site=stackoverflow&pagesize={limit}&from={offset}&key={apiKey}";
+                var url = baseUrl + $"site=stackoverflow&pagesize={limit}&key={apiKey}";
                 var response = await _httpClient.GetAsync(url);
 
                 if (response.IsSuccessStatusCode)
