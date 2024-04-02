@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Net.Http;
+using System.Text;
 using ZadanieRekrutacyjne.Model;
 
 namespace ZadanieRekrutacyjne.Services
@@ -24,7 +25,7 @@ namespace ZadanieRekrutacyjne.Services
         public async Task DownloadTagsFromStackOverflow()
         {
             var apiKey = _tagApiConfiguration.ApiKey;
-            var url = $"https://api.stackexchange.com/2.2/tags?pagesize=1&order=desc&sort=popular&site=stackoverflow&key={apiKey}";
+            var url = $"https://api.stackexchange.com/2.2/tags?pagesize=5&order=desc&sort=popular&site=stackoverflow&key={apiKey}";
             _logger.LogInformation("Downloading tags from {url}", url);
 
             var response = await _httpClient.GetAsync(url);
