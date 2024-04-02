@@ -32,12 +32,12 @@ namespace ZadanieRekrutacyjne.Controllers
         public async Task<IActionResult> GetTags(int limit)
         {
             var tags =await GetTagsFromApi(limit);
-            //SaveTagsToDatabase(tags);
+            await SaveTagsToDatabase(tags);
 
             return Ok(tags);
         }
 
-        private async Task<IActionResult> GetTagsFromApi(int limit)
+        private async Task<List<Tag>> GetTagsFromApi(int limit)
         {
             var apiKey = _tagApiConfiguration.ApiKey;
             var baseUrl = "https://api.stackexchange.com/2.3/tags?";
@@ -54,16 +54,17 @@ namespace ZadanieRekrutacyjne.Controllers
                 using (GZipStream gZipStream = new GZipStream(stream, CompressionMode.Decompress))
                 using (StreamReader reader = new StreamReader(gZipStream))
                 {
-                    string responseBody = await reader.ReadToEndAsync();
-                    return Ok(responseBody);
+                    var responseBody = await reader.ReadToEndAsync();
+                    var tagApiResponse = JsonConvert.DeserializeObject<TagApiResponse>(responseBody);
+                    return tagApiResponse.Items;
                 }
 
             }
             else
             {
                 var responseContent = await response.Content.ReadAsStringAsync();
-                var tags = JsonConvert.DeserializeObject<List<Tag>>(responseContent);
-                return Ok(tags); // Return deserialized tags list for non-Gzip
+                var tagApiResponse = JsonConvert.DeserializeObject<TagApiResponse>(responseContent);
+                return tagApiResponse.Items; // Return deserialized tags list for non-Gzip
             }
 
             //previous attempt of deserializing json
@@ -85,7 +86,7 @@ namespace ZadanieRekrutacyjne.Controllers
             //    }
 
         }
-        private void SaveTagsToDatabase(List<Tag> tags)
+        private async Task SaveTagsToDatabase(List<Tag> tags)
         {
             foreach (var tag in tags)
             {
@@ -94,7 +95,8 @@ namespace ZadanieRekrutacyjne.Controllers
                     _tagContext.Tags.Add(tag);
                 }
             }
-            _tagContext.SaveChanges(); // Save all changes to database
+
+            await _tagContext.SaveChangesAsync(); // Save all changes to database
         }
     }
 }
