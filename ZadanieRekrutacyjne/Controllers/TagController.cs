@@ -71,22 +71,49 @@ namespace ZadanieRekrutacyjne.Controllers
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    var data = JsonConvert.DeserializeObject<Dictionary<string, object>>(responseContent); // Deserialize to Dictionary
-                    var items = data["items"] as List<object>; // Get the "items" list
+                  _logger.LogInformation("Response content: {content}", responseContent);
 
+
+                try
+                {
+                    // Simplified deserialization for initial inspection
+                    var responseData = JsonConvert.DeserializeObject<Dictionary<string, object>>(responseContent);
+                    var items = (List<object>)responseData["items"];
+
+                    // Check for expected structure and handle potential null values
                     var tags = new List<Tag>();
                     foreach (var item in items)
                     {
-                        var tagDict = item as Dictionary<string, object>; // Cast to Dictionary
-                        tags.Add(new Tag
+                        var tagDict = item as Dictionary<string, object>;
+                        if (tagDict != null)
                         {
-                            Name = tagDict["name"] as string,
-                            Count = Convert.ToInt32(tagDict["count"])
-                        });
+                            var name = tagDict["name"] as string;
+                            var count = Convert.ToInt32(tagDict["count"]);
+
+                            // Handle optional "collectives" property
+                            List<object> collectives = null;
+                            if (tagDict.ContainsKey("collectives"))
+                            {
+                                collectives = tagDict["collectives"] as List<object>;
+                            }
+
+                            tags.Add(new Tag
+                            {
+                                Name = name,
+                                Count = count,
+                                Collectives = collectives // May be null
+                            });
+                        }
                     }
 
-                  return tags;
+                    return tags;
                 }
+                catch (JsonException ex)
+                {
+                    _logger.LogError("Error deserializing JSON response: {message}", ex.Message);
+                    throw; // Re-throw the exception for handling by caller
+                }
+            }
                 else
                 {
                     throw new Exception($"Failed to get tags from API: {response.StatusCode}");
