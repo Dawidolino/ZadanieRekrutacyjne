@@ -42,7 +42,7 @@ namespace ZadanieRekrutacyjne.Controllers
                 offset += limit; // Increment offset for the next iteration
             }
             //var tags =await GetTagsFromApi(limit);
-            await SaveTagsToDatabase(allTags);
+                await SaveTagsToDatabase(allTags);
 
             return Ok(allTags);
         }
@@ -100,7 +100,7 @@ namespace ZadanieRekrutacyjne.Controllers
         {
             foreach (var tag in tags)
             {
-                if (!_tagContext.Tags.Any(t => t.Name == tag.Name)) // Check for existing tag
+                if (!_tagContext.Tags.Any(t => t.Count == tag.Count)) // Check for existing tag
                 {
                     _tagContext.Tags.Add(tag);
                 }
