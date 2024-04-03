@@ -29,14 +29,17 @@ namespace ZadanieRekrutacyjne.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetTags(int totalTags, int currentPage =1 )
+        public async Task<IActionResult> GetTags(int totalTags, int currentPage = 1   )
         {
             var allTags = new List<Tag>();
-      
+            //var totalFetchedCount = 0;
+
             //Loop to jump to the next page starting from page 1
             while (allTags.Count < totalTags)
             {
                 var fetchedTags = await GetTagsFromApi(currentPage);
+                //totalFetchedCount += fetchedTags.Count;
+
                 allTags.AddRange(fetchedTags);
 
                 // Check if we've reached the desired totalTags
@@ -47,6 +50,7 @@ namespace ZadanieRekrutacyjne.Controllers
 
                 currentPage++;
             }
+            var totalCount = allTags.Sum(tag => tag.Count);
 
             await SaveTagsToDatabase(allTags);
 
@@ -117,14 +121,23 @@ namespace ZadanieRekrutacyjne.Controllers
         }
         private async Task SaveTagsToDatabase(List<Tag> tags)
         {
+     
             foreach (var tag in tags)
             {
                 if (!_tagContext.Tags.Any(t => t.Name == tag.Name)) // Check for existing tag
                 {
+                    //tag.Percentage = (double)tag.Count / totalCount * 100;
                     _tagContext.Tags.Add(tag);
                 }
             }
+            // calculate percentages for all tags
+            var allTags = await _tagContext.Tags.ToListAsync();
+            var totalCount = allTags.Sum(tag => tag.Count);
 
+            foreach (var tag in allTags)
+            {
+                tag.Percentage = (double)tag.Count / totalCount * 100;
+            }
             await _tagContext.SaveChangesAsync(); // Save all changes to database
         }
     }
