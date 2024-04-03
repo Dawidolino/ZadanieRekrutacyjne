@@ -29,14 +29,14 @@ namespace ZadanieRekrutacyjne.Controllers
         }
 
         [HttpGet()]
-        public async Task<IActionResult> GetTags(int pageSize, int totalTags, int currentPage = 1)
+        public async Task<IActionResult> GetTags(int totalTags, int currentPage =1 )
         {
             var allTags = new List<Tag>();
-
+      
             //Loop to jump to the next page starting from page 1
             while (allTags.Count < totalTags)
             {
-                var fetchedTags = await GetTagsFromApi(pageSize, currentPage);
+                var fetchedTags = await GetTagsFromApi(currentPage);
                 allTags.AddRange(fetchedTags);
 
                 // Check if we've reached the desired totalTags
@@ -53,7 +53,7 @@ namespace ZadanieRekrutacyjne.Controllers
             return Ok(allTags);
         }
 
-        private async Task<List<Tag>> GetTagsFromApi(int pageSize, int page)
+        private async Task<List<Tag>> GetTagsFromApi(int currentPage)
         {
             var apiKey = _tagApiConfiguration.ApiKey;
             var baseUrl = "https://api.stackexchange.com/2.3/tags?";
@@ -62,7 +62,7 @@ namespace ZadanieRekrutacyjne.Controllers
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
             
             //search by popularity, sort by descending count (most searched first), filter by name and count only
-            var url = baseUrl + $"site=stackoverflow&sort=popular&order=desc&page={page}&pagesize={pageSize}&key={apiKey}&filter=!4-C9.H1YNh.sprLqs";  
+            var url = baseUrl + $"site=stackoverflow&sort=popular&order=desc&page={currentPage}&pagesize=100&key={apiKey}&filter=!4-C9.H1YNh.sprLqs";  
                 
             HttpResponseMessage response = await _httpClient.GetAsync(url);
             response.EnsureSuccessStatusCode();
