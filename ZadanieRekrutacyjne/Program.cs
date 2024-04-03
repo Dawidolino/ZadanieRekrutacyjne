@@ -30,7 +30,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 app.UseCors(options =>
-options.WithOrigins("http://localhost:4200")
+options.WithOrigins("http://localhost:4200","http://localhost:5049","http://localhost:7182")
 .AllowAnyMethod()
 .AllowAnyHeader()
 );

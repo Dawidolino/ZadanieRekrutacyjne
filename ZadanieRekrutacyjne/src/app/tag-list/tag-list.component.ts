@@ -3,12 +3,14 @@ import { TagService } from '../services/tag.service';
 import { Tag } from '../models/tag';
 import { NgFor, NgIf } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { HttpClientModule } from '@angular/common/http';
 
 @Component({
   selector: 'app-tag-list',
   templateUrl: './tag-list.component.html',
   styleUrls: ['./tag-list.component.css'],
-  imports: [NgFor, NgIf,RouterModule],
+  imports: [NgFor, NgIf,RouterModule, HttpClientModule],
   standalone: true
 })
 export class TagListComponent implements OnInit {
@@ -18,17 +20,18 @@ export class TagListComponent implements OnInit {
   sortBy: string = 'name';
   sortOrder: string = 'asc';
 
-  constructor(private tagService: TagService) { }
+  constructor(private tagService: TagService, private http: HttpClient) { }
 
   ngOnInit(): void {
     this.loadTags();
   }
 
+  
   loadTags() {
     this.tagService.getTags(this.totalTags, this.currentPage, this.sortBy, this.sortOrder)
       .subscribe(tags => this.tags = tags);
   }
-
+  
   onPageChange(page: number) {
     this.currentPage = page;
     this.loadTags();
