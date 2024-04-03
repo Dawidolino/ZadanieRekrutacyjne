@@ -29,37 +29,44 @@ namespace ZadanieRekrutacyjne.Controllers
         }
 
         [HttpGet()]
-        public async Task<IActionResult> GetTags(int limit)
+        public async Task<IActionResult> GetTags(int pageSize, int totalTags, int currentPage = 1)
         {
-            var totalTags = 1000;
-            var offset = 0;
             var allTags = new List<Tag>();
 
+            //Loop to jump to the next page starting from page 1
             while (allTags.Count < totalTags)
             {
-                var fetchedTags = await GetTagsFromApi(limit, offset); // Get tags with current offset
-                allTags.AddRange(fetchedTags); // Add fetched tags to the main list
-                offset += limit; // Increment offset for the next iteration
+                var fetchedTags = await GetTagsFromApi(pageSize, currentPage);
+                allTags.AddRange(fetchedTags);
+
+                // Check if we've reached the desired totalTags
+                if (allTags.Count >= totalTags)
+                {
+                    break;
+                }
+
+                currentPage++;
             }
-            //var tags =await GetTagsFromApi(limit);
-                await SaveTagsToDatabase(allTags);
+
+            await SaveTagsToDatabase(allTags);
 
             return Ok(allTags);
         }
 
-        private async Task<List<Tag>> GetTagsFromApi(int limit, int offset)
+        private async Task<List<Tag>> GetTagsFromApi(int pageSize, int page)
         {
             var apiKey = _tagApiConfiguration.ApiKey;
             var baseUrl = "https://api.stackexchange.com/2.3/tags?";
 
 
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
-
-                var url = baseUrl + $"site=stackoverflow&pagesize={limit}&offset={offset}&key={apiKey}";
+            
+            //search by popularity, sort by descending count (most searched first), filter by name and count only
+            var url = baseUrl + $"site=stackoverflow&sort=popular&order=desc&page={page}&pagesize={pageSize}&key={apiKey}&filter=!4-C9.H1YNh.sprLqs";  
                 
             HttpResponseMessage response = await _httpClient.GetAsync(url);
             response.EnsureSuccessStatusCode();
-            if (response.Content.Headers.ContentEncoding.Contains("gzip") ){                                   //json is compressed into gzip and needs to be decompressed first
+            if (response.Content.Headers.ContentEncoding.Contains("gzip") ){           //json is compressed into gzip and needs to be decompressed first
                 using (Stream stream = await response.Content.ReadAsStreamAsync())
                 using (GZipStream gZipStream = new GZipStream(stream, CompressionMode.Decompress))
                 using (StreamReader reader = new StreamReader(gZipStream))
@@ -100,7 +107,7 @@ namespace ZadanieRekrutacyjne.Controllers
         {
             foreach (var tag in tags)
             {
-                if (!_tagContext.Tags.Any(t => t.Count == tag.Count)) // Check for existing tag
+                if (!_tagContext.Tags.Any(t => t.Name == tag.Name)) // Check for existing tag
                 {
                     _tagContext.Tags.Add(tag);
                 }
