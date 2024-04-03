@@ -1,4 +1,4 @@
-﻿namespace ZadanieRekrutacyjne.Model
+namespace ZadanieRekrutacyjne.Model
 {
     public class Tag
     {
