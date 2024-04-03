@@ -28,7 +28,7 @@ namespace ZadanieRekrutacyjne.Controllers
             _logger = logger;
         }
 
-        [HttpGet()]
+        [HttpGet]
         public async Task<IActionResult> GetTags(int totalTags, int currentPage =1 )
         {
             var allTags = new List<Tag>();
@@ -53,6 +53,18 @@ namespace ZadanieRekrutacyjne.Controllers
             return Ok(allTags);
         }
 
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Tag>> GetTags(int id)
+        {
+            if (_tagContext == null)
+            {
+                return NotFound();
+            }
+            var tags = await _tagContext.Tags.FindAsync(id);
+            if (tags == null) { return NotFound(); }
+            return Ok(tags);
+
+        }
         private async Task<List<Tag>> GetTagsFromApi(int currentPage)
         {
             var apiKey = _tagApiConfiguration.ApiKey;
