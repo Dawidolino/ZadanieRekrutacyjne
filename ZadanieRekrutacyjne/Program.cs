@@ -29,7 +29,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+app.UseCors(options =>
+options.WithOrigins("http://localhost:4200")
+.AllowAnyMethod()
+.AllowAnyHeader()
+);
 app.UseHttpsRedirection();
 
 app.UseAuthorization();

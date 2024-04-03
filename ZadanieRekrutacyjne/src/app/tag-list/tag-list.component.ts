@@ -1,11 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { TagService } from '../services/tag.service';
 import { Tag } from '../models/tag';
+import { NgFor, NgIf } from '@angular/common';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-tag-list',
   templateUrl: './tag-list.component.html',
-  styleUrls: ['./tag-list.component.css']
+  styleUrls: ['./tag-list.component.css'],
+  imports: [NgFor, NgIf,RouterModule],
+  standalone: true
 })
 export class TagListComponent implements OnInit {
   tags: Tag[] = [];
