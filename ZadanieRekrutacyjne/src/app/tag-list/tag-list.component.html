@@ -1,0 +1,21 @@
+<div *ngFor="let tag of tags">
+    <div>
+      <p>ID: {{ tag.id }}</p>
+      <p>Name: {{ tag.name }}</p>
+      <p>Percentage: {{ tag.percentage }}</p>
+      <p>Count: {{ tag.count }}</p>
+    </div>
+  </div>
+    
+  <button (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 1">Previous Page</button>
+  <button (click)="onPageChange(currentPage + 1)">Next Page</button>
+  
+  <select (change)="onSortChange($event)">
+    <option value="name">Sort by Name (Ascending)</option>
+    <option value="percentage">Sort by Percentage (Ascending)</option>
+  </select>
+  <select (change)="onSortChange($event)">
+    <option value="name">Sort by Name (Descending)</option>
+    <option value="percentage">Sort by Percentage (Descending)</option>
+  </select>
+  
